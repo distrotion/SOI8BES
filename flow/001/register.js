@@ -30,7 +30,7 @@ let dbinMAIN = 'MAIN'
 
 router.post('/CHECKPO', async (req, res) => {
     let d = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });;
-let day = d;
+    let day = d;
     //-------------------------------------
     console.log(req.body);
     let input = req.body;
@@ -146,13 +146,13 @@ let day = d;
         output = [];
 
         // console.log(data)
-   
+
 
         if (data["PLANT"] !== "NOdata") {
             let query = '';
             if (data["PLANT"] == 'TRITRATING') {
                 // query = `SELECT *  FROM [ScadaReport].[dbo].[LQprocessinfo] where NumOrder= '212575'`
-                output= {
+                output = {
 
                     "recordsets": [
                         [
@@ -172,10 +172,10 @@ let day = d;
                                 "NumTemp": 0,
                                 "dtDate": "2023-07-25T00:00:00.000Z"
                             },
-                           
+
                         ]
                     ],
-                 
+
                     "output": {},
                     "rowsAffected": [
                         1
@@ -186,7 +186,7 @@ let day = d;
                 query = `SELECT *  FROM [ScadaReport].[dbo].[CoilProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
                 let db = await mssql.qurey(query);
 
-                
+
 
                 output = db;
                 if (db['recordsets'][0].length == 0) {
@@ -219,7 +219,7 @@ let day = d;
                             1
                         ]
                     }
-                }else{
+                } else {
 
                     output['recordsets'][0].push(
                         {
@@ -277,7 +277,7 @@ let day = d;
                             1
                         ]
                     }
-                }else{
+                } else {
 
                     output['recordsets'][0].push(
                         {
@@ -335,7 +335,7 @@ let day = d;
                             1
                         ]
                     }
-                }else{
+                } else {
 
                     output['recordsets'][0].push(
                         {
@@ -362,7 +362,7 @@ let day = d;
                 query = `SELECT *  FROM [ScadaReport].[dbo].[PMIXProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
                 let db = await mssql.qurey(query);
 
-            
+
 
                 output = db;
 
@@ -397,7 +397,7 @@ let day = d;
                             1
                         ]
                     }
-                }else{
+                } else {
 
                     output['recordsets'][0].push(
                         {
@@ -419,7 +419,7 @@ let day = d;
                     )
 
                 }
-                
+
             } else if (data["PLANT"] == 'POWDER') {
 
                 query = `SELECT *  FROM [ScadaReport].[dbo].[PMProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
@@ -457,7 +457,7 @@ let day = d;
                             1
                         ]
                     }
-                }else{
+                } else {
 
                     output['recordsets'][0].push(
                         {
@@ -515,7 +515,7 @@ let day = d;
                             1
                         ]
                     }
-                }else{
+                } else {
 
                     output['recordsets'][0].push(
                         {
@@ -573,7 +573,7 @@ let day = d;
                             1
                         ]
                     }
-                }else{
+                } else {
 
                     output['recordsets'][0].push(
                         {
@@ -597,7 +597,7 @@ let day = d;
                 }
             }
             //[][][][][][]
-          
+
 
         } else {
 
@@ -615,168 +615,131 @@ let day = d;
 
 router.post('/RegisterPO', async (req, res) => {
     let d = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });;
-let day = d;
+    let day = d;
     //-------------------------------------
     console.log(req.body);
     let input = req.body;
     //-------------------------------------
     let output = '';
+    if (input['wegiht'] != undefined) {
+        try {
 
-    try {
+            let MATCP = input['PO'].substring(0, 8);
+            let PO = input['PO'].substring(12, 18);
 
-        let MATCP = input['PO'].substring(0, 8);
-        let PO = input['PO'].substring(12, 18);
+            let PREMIX = await mongodb.find(PREMIXserver, dbin, { "MATNO": MATCP });
+            let COILCOATING = await mongodb.find(COILCOATINGserver, dbin, { "MATNO": MATCP });
+            let HYDROPHILIC = await mongodb.find(HYDROPHILICserver, dbin, { "MATNO": MATCP });
+            let PLX = await mongodb.find(PLXserver, dbin, { "MATNO": MATCP });
+            let TRITRATING = await mongodb.find(TRITRATINGserver, dbin, { "MATNO": MATCP });
+            let POWDER = await mongodb.find(POWDERserver, dbin, { "MATNO": MATCP });
+            let LIQUID = await mongodb.find(LIQUIDserver, dbin, { "MATNO": MATCP });
+            let NOXRUST = await mongodb.find(NOXRUSTserver, dbin, { "MATNO": MATCP });
 
-        let PREMIX = await mongodb.find(PREMIXserver, dbin, { "MATNO": MATCP });
-        let COILCOATING = await mongodb.find(COILCOATINGserver, dbin, { "MATNO": MATCP });
-        let HYDROPHILIC = await mongodb.find(HYDROPHILICserver, dbin, { "MATNO": MATCP });
-        let PLX = await mongodb.find(PLXserver, dbin, { "MATNO": MATCP });
-        let TRITRATING = await mongodb.find(TRITRATINGserver, dbin, { "MATNO": MATCP });
-        let POWDER = await mongodb.find(POWDERserver, dbin, { "MATNO": MATCP });
-        let LIQUID = await mongodb.find(LIQUIDserver, dbin, { "MATNO": MATCP });
-        let NOXRUST = await mongodb.find(NOXRUSTserver, dbin, { "MATNO": MATCP });
+            let data = {
+                "PLANT": "NOdata",
+                "STATUS": "ORDER AGAIN"
+            };
 
-        let data = {
-            "PLANT": "NOdata",
-            "STATUS": "ORDER AGAIN"
-        };
+            if (TRITRATING.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "TRITRATING",
+                    "MASTERdb": TRITRATINGserver,
+                    "MATDATA": TRITRATING[0],
+                    "ProductName": TRITRATING[0]['ProductName'],
+                };
+            } else if (COILCOATING.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "COILCOATING",
+                    "MASTERdb": COILCOATINGserver,
+                    "MATDATA": COILCOATING[0],
+                    "ProductName": COILCOATING[0]['ProductName'],
+                };
+            } else if (HYDROPHILIC.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "HYDROPHILIC",
+                    "MASTERdb": HYDROPHILICserver,
+                    "MATDATA": HYDROPHILIC[0],
+                    "ProductName": HYDROPHILIC[0]['ProductName'],
+                };
+            } else if (PLX.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "PLX",
+                    "MASTERdb": PLXserver,
+                    "MATDATA": PLX[0],
+                    "ProductName": PLX[0]['ProductName'],
+                };
+            } else if (PREMIX.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "PREMIX",
+                    "MASTERdb": PREMIXserver,
+                    "MATDATA": PREMIX[0],
+                    "ProductName": PREMIX[0]['ProductName'],
+                };
+            } else if (POWDER.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "POWDER",
+                    "MASTERdb": POWDERserver,
+                    "MATDATA": POWDER[0],
+                    "ProductName": POWDER[0]['ProductName'],
+                };
+            } else if (LIQUID.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "LIQUID",
+                    "MASTERdb": LIQUIDserver,
+                    "MATDATA": LIQUID[0],
+                    "ProductName": LIQUID[0]['ProductName'],
+                };
+            } else if (NOXRUST.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "NOXRUST",
+                    "MASTERdb": NOXRUSTserver,
+                    "MATDATA": NOXRUST[0],
+                    "ProductName": NOXRUST[0]['ProductName'],
+                };
+            } else {
+                output = 'The MAT NO. Incorrect';
+            }
 
-        if (TRITRATING.length > 0) {
-            data = {
-                "MATCP": MATCP,
+            let neworder = {
+                "POID": input['PO'],
+                "MATNO": MATCP,
                 "PO": PO,
-                "PLANT": "TRITRATING",
-                "MASTERdb": TRITRATINGserver,
-                "MATDATA": TRITRATING[0],
-                "ProductName": TRITRATING[0]['ProductName'],
+                "PLANT": data["PLANT"],
+                "MASTERdb": data["MASTERdb"],
+                "ProductName": data["ProductName"],
+                "SumStatus": "IP",
+                "DEP": "STAFF"
             };
-        } else if (COILCOATING.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "COILCOATING",
-                "MASTERdb": COILCOATINGserver,
-                "MATDATA": COILCOATING[0],
-                "ProductName": COILCOATING[0]['ProductName'],
-            };
-        } else if (HYDROPHILIC.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "HYDROPHILIC",
-                "MASTERdb": HYDROPHILICserver,
-                "MATDATA": HYDROPHILIC[0],
-                "ProductName": HYDROPHILIC[0]['ProductName'],
-            };
-        } else if (PLX.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "PLX",
-                "MASTERdb": PLXserver,
-                "MATDATA": PLX[0],
-                "ProductName": PLX[0]['ProductName'],
-            };
-        } else if (PREMIX.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "PREMIX",
-                "MASTERdb": PREMIXserver,
-                "MATDATA": PREMIX[0],
-                "ProductName": PREMIX[0]['ProductName'],
-            };
-        } else if (POWDER.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "POWDER",
-                "MASTERdb": POWDERserver,
-                "MATDATA": POWDER[0],
-                "ProductName": POWDER[0]['ProductName'],
-            };
-        } else if (LIQUID.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "LIQUID",
-                "MASTERdb": LIQUIDserver,
-                "MATDATA": LIQUID[0],
-                "ProductName": LIQUID[0]['ProductName'],
-            };
-        } else if (NOXRUST.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "NOXRUST",
-                "MASTERdb": NOXRUSTserver,
-                "MATDATA": NOXRUST[0],
-                "ProductName": NOXRUST[0]['ProductName'],
-            };
-        } else {
+
             output = 'The MAT NO. Incorrect';
-        }
 
-        let neworder = {
-            "POID": input['PO'],
-            "MATNO": MATCP,
-            "PO": PO,
-            "PLANT": data["PLANT"],
-            "MASTERdb": data["MASTERdb"],
-            "ProductName": data["ProductName"],
-            "SumStatus": "IP",
-            "DEP": "STAFF"
-        };
+            if (data["PLANT"] !== "NOdata") {
+                // console.log(Object.keys(data["MATDATA"]["SPEC"]))
+                let INSlist = Object.keys(data["MATDATA"]["SPEC"]);
+                let checklist = [];
+                for (i = 0; i < INSlist.length; i++) {
 
-        output = 'The MAT NO. Incorrect';
-
-        if (data["PLANT"] !== "NOdata") {
-            // console.log(Object.keys(data["MATDATA"]["SPEC"]))
-            let INSlist = Object.keys(data["MATDATA"]["SPEC"]);
-            let checklist = [];
-            for (i = 0; i < INSlist.length; i++) {
-
-                if (INSlist[i] === 'COLOR') {
-                    checklist.push(INSlist[i]);
-                    neworder['COLOR'] = {
-                        "SPEC": data["MATDATA"]["SPEC"]["COLOR"],
-                        "T1": "",
-                        "T1St": "",
-                        "T1Stc": "orange",
-                        "T2": "",
-                        "T2St": "",
-                        "T2Stc": "orange",
-                        "T3": "",
-                        "T3St": "",
-                        "T3Stc": "orange",
-                        "AllSt": "IP",
-                        "T1Stc_comment": "",
-                        "T2Stc_comment": "",
-                        "T3Stc_comment": "",
-                    }
-                } else if (INSlist[i] === 'APPEARANCE') {
-                    checklist.push(INSlist[i])
-                    neworder['APPEARANCE'] = {
-                        "SPEC": data["MATDATA"]["SPEC"]["APPEARANCE"],
-                        "T1": "",
-                        "T1St": "",
-                        "T1Stc": "orange",
-                        "T2": "",
-                        "T2St": "",
-                        "T2Stc": "orange",
-                        "T3": "",
-                        "T3St": "",
-                        "T3Stc": "orange",
-                        "AllSt": "IP",
-                        "T1Stc_comment": "",
-                        "T2Stc_comment": "",
-                        "T3Stc_comment": "",
-                    }
-                } else {
-                    if ((data["MATDATA"]["SPEC"][`${INSlist[i]}`]["HI"] !== "") && (data["MATDATA"]["SPEC"][`${INSlist[i]}`]["LOW"] !== "")) {
-                        checklist.push(INSlist[i])
-                        neworder[`${INSlist[i]}`] = {
-                            "SPEC": data["MATDATA"]["SPEC"][`${INSlist[i]}`],
+                    if (INSlist[i] === 'COLOR') {
+                        checklist.push(INSlist[i]);
+                        neworder['COLOR'] = {
+                            "SPEC": data["MATDATA"]["SPEC"]["COLOR"],
                             "T1": "",
                             "T1St": "",
                             "T1Stc": "orange",
@@ -791,44 +754,87 @@ let day = d;
                             "T2Stc_comment": "",
                             "T3Stc_comment": "",
                         }
+                    } else if (INSlist[i] === 'APPEARANCE') {
+                        checklist.push(INSlist[i])
+                        neworder['APPEARANCE'] = {
+                            "SPEC": data["MATDATA"]["SPEC"]["APPEARANCE"],
+                            "T1": "",
+                            "T1St": "",
+                            "T1Stc": "orange",
+                            "T2": "",
+                            "T2St": "",
+                            "T2Stc": "orange",
+                            "T3": "",
+                            "T3St": "",
+                            "T3Stc": "orange",
+                            "AllSt": "IP",
+                            "T1Stc_comment": "",
+                            "T2Stc_comment": "",
+                            "T3Stc_comment": "",
+                        }
+                    } else {
+                        if ((data["MATDATA"]["SPEC"][`${INSlist[i]}`]["HI"] !== "") && (data["MATDATA"]["SPEC"][`${INSlist[i]}`]["LOW"] !== "")) {
+                            checklist.push(INSlist[i])
+                            neworder[`${INSlist[i]}`] = {
+                                "SPEC": data["MATDATA"]["SPEC"][`${INSlist[i]}`],
+                                "T1": "",
+                                "T1St": "",
+                                "T1Stc": "orange",
+                                "T2": "",
+                                "T2St": "",
+                                "T2Stc": "orange",
+                                "T3": "",
+                                "T3St": "",
+                                "T3Stc": "orange",
+                                "AllSt": "IP",
+                                "T1Stc_comment": "",
+                                "T2Stc_comment": "",
+                                "T3Stc_comment": "",
+                            }
+                        }
                     }
                 }
-            }
 
-            let check = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { "POID": neworder['POID'] });
+                let check = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { "POID": neworder['POID'] });
 
-            if (check.length === 0) {
-                console.log("<<<<<<<")
-                neworder['time'] = check.length + 1;
-                neworder['date'] = day;
-                neworder['checklist'] = checklist;
-                var ins = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
-                output = `The order have added to PLANT:${data["PLANT"]}`;
-            } else {
-                // let upd = await mongodb.update(`${neworder['PLANT']}dbMAIN`,'MAIN',{ "POID":neworder['POID'] }, { $set: neworder });
-
-                let check2 = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { $and: [{ "POID": neworder['POID'] }, { $or: [{ "DEP": "MANA" }, { "DEP": "STAFF" }] }] });
-                if (check2.length === 0) {
+                if (check.length === 0) {
+                    console.log("<<<<<<<")
                     neworder['time'] = check.length + 1;
                     neworder['date'] = day;
                     neworder['checklist'] = checklist;
-                    var ins2 = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
-                    console.log(">>>>>>>")
+                    var ins = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
+                    query2 = `INSERT  INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES ('${input['PO']}','${input['wegiht']}','','${data["PLANT"]}','1')`
+                    let db2 = await mssqlR.qureyR(query2);
                     output = `The order have added to PLANT:${data["PLANT"]}`;
-
                 } else {
-                    output = `The order have already had in DB`;
+                    // let upd = await mongodb.update(`${neworder['PLANT']}dbMAIN`,'MAIN',{ "POID":neworder['POID'] }, { $set: neworder });
+
+                    let check2 = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { $and: [{ "POID": neworder['POID'] }, { $or: [{ "DEP": "MANA" }, { "DEP": "STAFF" }] }] });
+                    if (check2.length === 0) {
+                        neworder['time'] = check.length + 1;
+                        neworder['date'] = day;
+                        neworder['checklist'] = checklist;
+                        var ins2 = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
+                        query2 = `INSERT  INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES ('${input['PO']}','${input['wegiht']}','','${data["PLANT"]}','1')`
+                        let db2 = await mssqlR.qureyR(query2);
+                        console.log(">>>>>>>")
+                        output = `The order have added to PLANT:${data["PLANT"]}`;
+
+                    } else {
+                        output = `The order have already had in DB`;
+                    }
+
                 }
 
+            } else {
+
             }
-
-        } else {
-
         }
 
-    }
-    catch (err) {
-        output = '';
+
+        catch (err) {
+            output = '';
+        }
     }
 
 
@@ -837,7 +843,7 @@ let day = d;
 
 router.post('/rejectitem', async (req, res) => {
     let d = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });;
-let day = d;
+    let day = d;
     ///-------------------------------------
     console.log(req.body);
     let input = req.body;
@@ -908,168 +914,133 @@ let day = d;
 
 router.post('/RegisterPOAP', async (req, res) => {
     let d = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });;
-let day = d;
+    let day = d;
     //-------------------------------------
     console.log(req.body);
     let input = req.body;
     //-------------------------------------
     let output = '';
 
-    try {
+    if (input['wegiht'] != undefined) {
 
-        let MATCP = input['PO'].substring(0, 8);
-        let PO = input['PO'].substring(12, 18);
+        try {
 
-        let PREMIX = await mongodb.find(PREMIXserver, dbin, { "MATNO": MATCP });
-        let COILCOATING = await mongodb.find(COILCOATINGserver, dbin, { "MATNO": MATCP });
-        let HYDROPHILIC = await mongodb.find(HYDROPHILICserver, dbin, { "MATNO": MATCP });
-        let PLX = await mongodb.find(PLXserver, dbin, { "MATNO": MATCP });
-        let TRITRATING = await mongodb.find(TRITRATINGserver, dbin, { "MATNO": MATCP });
-        let POWDER = await mongodb.find(POWDERserver, dbin, { "MATNO": MATCP });
-        let LIQUID = await mongodb.find(LIQUIDserver, dbin, { "MATNO": MATCP });
-        let NOXRUST = await mongodb.find(NOXRUSTserver, dbin, { "MATNO": MATCP });
+            let MATCP = input['PO'].substring(0, 8);
+            let PO = input['PO'].substring(12, 18);
 
-        let data = {
-            "PLANT": "NOdata",
-            "STATUS": "ORDER AGAIN"
-        };
+            let PREMIX = await mongodb.find(PREMIXserver, dbin, { "MATNO": MATCP });
+            let COILCOATING = await mongodb.find(COILCOATINGserver, dbin, { "MATNO": MATCP });
+            let HYDROPHILIC = await mongodb.find(HYDROPHILICserver, dbin, { "MATNO": MATCP });
+            let PLX = await mongodb.find(PLXserver, dbin, { "MATNO": MATCP });
+            let TRITRATING = await mongodb.find(TRITRATINGserver, dbin, { "MATNO": MATCP });
+            let POWDER = await mongodb.find(POWDERserver, dbin, { "MATNO": MATCP });
+            let LIQUID = await mongodb.find(LIQUIDserver, dbin, { "MATNO": MATCP });
+            let NOXRUST = await mongodb.find(NOXRUSTserver, dbin, { "MATNO": MATCP });
 
-        if (TRITRATING.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "TRITRATING",
-                "MASTERdb": TRITRATINGserver,
-                "MATDATA": TRITRATING[0],
-                "ProductName": TRITRATING[0]['ProductName'],
+            let data = {
+                "PLANT": "NOdata",
+                "STATUS": "ORDER AGAIN"
             };
-        } else if (COILCOATING.length > 0) {
-            data = {
-                "MATCP": MATCP,
+
+            if (TRITRATING.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "TRITRATING",
+                    "MASTERdb": TRITRATINGserver,
+                    "MATDATA": TRITRATING[0],
+                    "ProductName": TRITRATING[0]['ProductName'],
+                };
+            } else if (COILCOATING.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "COILCOATING",
+                    "MASTERdb": COILCOATINGserver,
+                    "MATDATA": COILCOATING[0],
+                    "ProductName": COILCOATING[0]['ProductName'],
+                };
+            } else if (HYDROPHILIC.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "HYDROPHILIC",
+                    "MASTERdb": HYDROPHILICserver,
+                    "MATDATA": HYDROPHILIC[0],
+                    "ProductName": HYDROPHILIC[0]['ProductName'],
+                };
+            } else if (PLX.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "PLX",
+                    "MASTERdb": PLXserver,
+                    "MATDATA": PLX[0],
+                    "ProductName": PLX[0]['ProductName'],
+                };
+            } else if (PREMIX.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "PREMIX",
+                    "MASTERdb": PREMIXserver,
+                    "MATDATA": PREMIX[0],
+                    "ProductName": PREMIX[0]['ProductName'],
+                };
+            } else if (POWDER.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "POWDER",
+                    "MASTERdb": POWDERserver,
+                    "MATDATA": POWDER[0],
+                    "ProductName": POWDER[0]['ProductName'],
+                };
+            } else if (LIQUID.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "LIQUID",
+                    "MASTERdb": LIQUIDserver,
+                    "MATDATA": LIQUID[0],
+                    "ProductName": LIQUID[0]['ProductName'],
+                };
+            } else if (NOXRUST.length > 0) {
+                data = {
+                    "MATCP": MATCP,
+                    "PO": PO,
+                    "PLANT": "NOXRUST",
+                    "MASTERdb": NOXRUSTserver,
+                    "MATDATA": NOXRUST[0],
+                    "ProductName": NOXRUST[0]['ProductName'],
+                };
+            } else {
+                output = 'The MAT NO. Incorrect';
+            }
+
+            let neworder = {
+                "POID": input['PO'],
+                "MATNO": MATCP,
                 "PO": PO,
-                "PLANT": "COILCOATING",
-                "MASTERdb": COILCOATINGserver,
-                "MATDATA": COILCOATING[0],
-                "ProductName": COILCOATING[0]['ProductName'],
+                "PLANT": data["PLANT"],
+                "MASTERdb": data["MASTERdb"],
+                "ProductName": data["ProductName"],
+                "SumStatus": "IP",
+                "DEP": "STAFF"
             };
-        } else if (HYDROPHILIC.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "HYDROPHILIC",
-                "MASTERdb": HYDROPHILICserver,
-                "MATDATA": HYDROPHILIC[0],
-                "ProductName": HYDROPHILIC[0]['ProductName'],
-            };
-        } else if (PLX.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "PLX",
-                "MASTERdb": PLXserver,
-                "MATDATA": PLX[0],
-                "ProductName": PLX[0]['ProductName'],
-            };
-        } else if (PREMIX.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "PREMIX",
-                "MASTERdb": PREMIXserver,
-                "MATDATA": PREMIX[0],
-                "ProductName": PREMIX[0]['ProductName'],
-            };
-        } else if (POWDER.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "POWDER",
-                "MASTERdb": POWDERserver,
-                "MATDATA": POWDER[0],
-                "ProductName": POWDER[0]['ProductName'],
-            };
-        } else if (LIQUID.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "LIQUID",
-                "MASTERdb": LIQUIDserver,
-                "MATDATA": LIQUID[0],
-                "ProductName": LIQUID[0]['ProductName'],
-            };
-        } else if (NOXRUST.length > 0) {
-            data = {
-                "MATCP": MATCP,
-                "PO": PO,
-                "PLANT": "NOXRUST",
-                "MASTERdb": NOXRUSTserver,
-                "MATDATA": NOXRUST[0],
-                "ProductName": NOXRUST[0]['ProductName'],
-            };
-        } else {
+
             output = 'The MAT NO. Incorrect';
-        }
 
-        let neworder = {
-            "POID": input['PO'],
-            "MATNO": MATCP,
-            "PO": PO,
-            "PLANT": data["PLANT"],
-            "MASTERdb": data["MASTERdb"],
-            "ProductName": data["ProductName"],
-            "SumStatus": "IP",
-            "DEP": "STAFF"
-        };
+            if (data["PLANT"] !== "NOdata") {
+                // console.log(Object.keys(data["MATDATA"]["SPEC"]))
+                let INSlist = Object.keys(data["MATDATA"]["SPEC"]);
+                let checklist = [];
+                for (i = 0; i < INSlist.length; i++) {
 
-        output = 'The MAT NO. Incorrect';
-
-        if (data["PLANT"] !== "NOdata") {
-            // console.log(Object.keys(data["MATDATA"]["SPEC"]))
-            let INSlist = Object.keys(data["MATDATA"]["SPEC"]);
-            let checklist = [];
-            for (i = 0; i < INSlist.length; i++) {
-
-                if (INSlist[i] === 'COLOR') {
-                    checklist.push(INSlist[i]);
-                    neworder['COLOR'] = {
-                        "SPEC": data["MATDATA"]["SPEC"]["COLOR"],
-                        "T1": "",
-                        "T1St": "",
-                        "T1Stc": "orange",
-                        "T2": "",
-                        "T2St": "",
-                        "T2Stc": "orange",
-                        "T3": "",
-                        "T3St": "",
-                        "T3Stc": "orange",
-                        "AllSt": "IP",
-                        "T1Stc_comment": "",
-                        "T2Stc_comment": "",
-                        "T3Stc_comment": "",
-                    }
-                } else if (INSlist[i] === 'APPEARANCE') {
-                    checklist.push(INSlist[i])
-                    neworder['APPEARANCE'] = {
-                        "SPEC": data["MATDATA"]["SPEC"]["APPEARANCE"],
-                        "T1": "",
-                        "T1St": "",
-                        "T1Stc": "orange",
-                        "T2": "",
-                        "T2St": "",
-                        "T2Stc": "orange",
-                        "T3": "",
-                        "T3St": "",
-                        "T3Stc": "orange",
-                        "AllSt": "IP",
-                        "T1Stc_comment": "",
-                        "T2Stc_comment": "",
-                        "T3Stc_comment": "",
-                    }
-                } else {
-                    if ((data["MATDATA"]["SPEC"][`${INSlist[i]}`]["HI"] !== "") && (data["MATDATA"]["SPEC"][`${INSlist[i]}`]["LOW"] !== "")) {
-                        checklist.push(INSlist[i])
-                        neworder[`${INSlist[i]}`] = {
-                            "SPEC": data["MATDATA"]["SPEC"][`${INSlist[i]}`],
+                    if (INSlist[i] === 'COLOR') {
+                        checklist.push(INSlist[i]);
+                        neworder['COLOR'] = {
+                            "SPEC": data["MATDATA"]["SPEC"]["COLOR"],
                             "T1": "",
                             "T1St": "",
                             "T1Stc": "orange",
@@ -1084,55 +1055,98 @@ let day = d;
                             "T2Stc_comment": "",
                             "T3Stc_comment": "",
                         }
+                    } else if (INSlist[i] === 'APPEARANCE') {
+                        checklist.push(INSlist[i])
+                        neworder['APPEARANCE'] = {
+                            "SPEC": data["MATDATA"]["SPEC"]["APPEARANCE"],
+                            "T1": "",
+                            "T1St": "",
+                            "T1Stc": "orange",
+                            "T2": "",
+                            "T2St": "",
+                            "T2Stc": "orange",
+                            "T3": "",
+                            "T3St": "",
+                            "T3Stc": "orange",
+                            "AllSt": "IP",
+                            "T1Stc_comment": "",
+                            "T2Stc_comment": "",
+                            "T3Stc_comment": "",
+                        }
+                    } else {
+                        if ((data["MATDATA"]["SPEC"][`${INSlist[i]}`]["HI"] !== "") && (data["MATDATA"]["SPEC"][`${INSlist[i]}`]["LOW"] !== "")) {
+                            checklist.push(INSlist[i])
+                            neworder[`${INSlist[i]}`] = {
+                                "SPEC": data["MATDATA"]["SPEC"][`${INSlist[i]}`],
+                                "T1": "",
+                                "T1St": "",
+                                "T1Stc": "orange",
+                                "T2": "",
+                                "T2St": "",
+                                "T2Stc": "orange",
+                                "T3": "",
+                                "T3St": "",
+                                "T3Stc": "orange",
+                                "AllSt": "IP",
+                                "T1Stc_comment": "",
+                                "T2Stc_comment": "",
+                                "T3Stc_comment": "",
+                            }
+                        }
                     }
                 }
-            }
 
-            // "PLANT": data["PLANT"],
-            // "MASTERdb": data["MASTERdb"],
-            // "ProductName": data["ProductName"],
+                // "PLANT": data["PLANT"],
+                // "MASTERdb": data["MASTERdb"],
+                // "ProductName": data["ProductName"],
 
-            let check = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { "POID": neworder['POID'] });
+                let check = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { "POID": neworder['POID'] });
 
-            if (check.length === 0) {
-                console.log("<<<<<<<")
-                neworder['time'] = check.length + 1;
-                neworder['date'] = day;
-                neworder['checklist'] = checklist;
-                var ins = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
-                output = `The order have added to PLANT:${data["PLANT"]}`;
-                query = `INSERT  INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES ('${input['PO']}','${input['COMMENT']}','NEW','${input['ID']}','${data["PLANT"]}','${data["ProductName"]}')`
-                let db = await mssqlR.qureyR(query);
-            } else {
-                // let upd = await mongodb.update(`${neworder['PLANT']}dbMAIN`,'MAIN',{ "POID":neworder['POID'] }, { $set: neworder });
-
-                let check2 = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { $and: [{ "POID": neworder['POID'] }, { $or: [{ "DEP": "MANA" }, { "DEP": "STAFF" }] }] });
-                if (check2.length === 0) {
+                if (check.length === 0) {
+                    console.log("<<<<<<<")
                     neworder['time'] = check.length + 1;
                     neworder['date'] = day;
                     neworder['checklist'] = checklist;
-                    var ins2 = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
-                    console.log(">>>>>>>")
+                    var ins = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
                     output = `The order have added to PLANT:${data["PLANT"]}`;
-                    // input['COMMENT']
                     query = `INSERT  INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES ('${input['PO']}','${input['COMMENT']}','NEW','${input['ID']}','${data["PLANT"]}','${data["ProductName"]}')`
                     let db = await mssqlR.qureyR(query);
-
+                    query2 = `INSERT  INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES ('${input['PO']}','${input['wegiht']}','','${data["PLANT"]}','1')`
+                    let db2 = await mssqlR.qureyR(query2);
                 } else {
-                    query = `INSERT  INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES ('${input['PO']}','${input['COMMENT']}','HAVE','${input['ID']}','${data["PLANT"]}','${data["ProductName"]}')`
-                    let db = await mssqlR.qureyR(query);
-                    output = `The order have already had in DB`;
+                    // let upd = await mongodb.update(`${neworder['PLANT']}dbMAIN`,'MAIN',{ "POID":neworder['POID'] }, { $set: neworder });
+
+                    let check2 = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { $and: [{ "POID": neworder['POID'] }, { $or: [{ "DEP": "MANA" }, { "DEP": "STAFF" }] }] });
+                    if (check2.length === 0) {
+                        neworder['time'] = check.length + 1;
+                        neworder['date'] = day;
+                        neworder['checklist'] = checklist;
+                        var ins2 = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
+                        console.log(">>>>>>>")
+                        output = `The order have added to PLANT:${data["PLANT"]}`;
+                        // input['COMMENT']
+                        query = `INSERT  INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES ('${input['PO']}','${input['COMMENT']}','NEW','${input['ID']}','${data["PLANT"]}','${data["ProductName"]}')`
+                        let db = await mssqlR.qureyR(query);
+                        query2 = `INSERT  INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES ('${input['PO']}','${input['wegiht']}','','${data["PLANT"]}','1')`
+                        let db2 = await mssqlR.qureyR(query2);
+
+                    } else {
+                        query = `INSERT  INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES ('${input['PO']}','${input['COMMENT']}','HAVE','${input['ID']}','${data["PLANT"]}','${data["ProductName"]}')`
+                        let db = await mssqlR.qureyR(query);
+                        output = `The order have already had in DB`;
+                    }
+
                 }
+
+            } else {
 
             }
 
-        } else {
-
+        }
+        catch (err) {
+            output = '';
         }
 
-    }
-    catch (err) {
-        output = '';
     }
 
 
@@ -1143,7 +1157,7 @@ let day = d;
 
 router.post('/RegisterPOAP-getplant-name', async (req, res) => {
     let d = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });;
-let day = d;
+    let day = d;
     //-------------------------------------
     console.log(req.body);
     let input = req.body;
@@ -1257,9 +1271,9 @@ let day = d;
             // "DEP": "STAFF"
         };
 
-        output =neworder;
+        output = neworder;
 
-      
+
 
     }
     catch (err) {
