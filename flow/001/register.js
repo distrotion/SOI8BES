@@ -1,4 +1,3 @@
-const e = require("express");
 const express = require("express");
 const router = express.Router();
 let mongodb = require('../../function/mongodb');
@@ -183,8 +182,7 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'COILCOATING') {
 
-                query = `SELECT *  FROM [ScadaReport].[dbo].[CoilProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
-                let db = await mssql.qurey(query);
+                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[CoilProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
 
 
 
@@ -243,8 +241,7 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'HYDROPHILIC') {
 
-                query = `SELECT *  FROM [ScadaReport].[dbo].[HydroProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
-                let db = await mssql.qurey(query);
+                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[HydroProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
 
                 output = db;
                 if (db['recordsets'][0].length == 0) {
@@ -301,8 +298,7 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'PLX') {
 
-                query = `SELECT *  FROM [ScadaReport].[dbo].[PLXprocessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
-                let db = await mssql.qurey(query);
+                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[PLXprocessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
 
                 output = db;
                 if (db['recordsets'][0].length == 0) {
@@ -359,8 +355,7 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'PREMIX') {
 
-                query = `SELECT *  FROM [ScadaReport].[dbo].[PMIXProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
-                let db = await mssql.qurey(query);
+                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[PMIXProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
 
 
 
@@ -422,8 +417,7 @@ router.post('/CHECKPO', async (req, res) => {
 
             } else if (data["PLANT"] == 'POWDER') {
 
-                query = `SELECT *  FROM [ScadaReport].[dbo].[PMProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
-                let db = await mssql.qurey(query);
+                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[PMProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
 
                 output = db;
 
@@ -481,8 +475,7 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'LIQUID') {
 
-                query = `SELECT *  FROM [ScadaReport].[dbo].[LQprocessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
-                let db = await mssql.qurey(query);
+                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[LQprocessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
 
                 output = db;
                 if (db['recordsets'][0].length == 0) {
@@ -539,8 +532,7 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'NOXRUST') {
 
-                query = `SELECT *  FROM [ScadaReport].[dbo].[NoxProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
-                let db = await mssql.qurey(query);
+                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[NoxProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
 
                 output = db;
                 if (db['recordsets'][0].length == 0) {
@@ -734,7 +726,7 @@ router.post('/RegisterPO', async (req, res) => {
                 // console.log(Object.keys(data["MATDATA"]["SPEC"]))
                 let INSlist = Object.keys(data["MATDATA"]["SPEC"]);
                 let checklist = [];
-                for (i = 0; i < INSlist.length; i++) {
+                for (let i = 0; i < INSlist.length; i++) {
 
                     if (INSlist[i] === 'COLOR') {
                         checklist.push(INSlist[i]);
@@ -803,20 +795,22 @@ router.post('/RegisterPO', async (req, res) => {
                     neworder['date'] = day;
                     neworder['checklist'] = checklist;
                     var ins = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
-                    query2 = `INSERT  INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES ('${input['PO']}','${input['wegiht']}','','${data["PLANT"]}','1')`
-                    let db2 = await mssqlR.qureyR(query2);
+                    await mssqlR.qureyRP(
+                        `INSERT INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES (@order, @weight, '', @plant, '1')`,
+                        { order: input['PO'], weight: input['wegiht'], plant: data["PLANT"] }
+                    );
                     output = `The order have added to PLANT:${data["PLANT"]}`;
                 } else {
-                    // let upd = await mongodb.update(`${neworder['PLANT']}dbMAIN`,'MAIN',{ "POID":neworder['POID'] }, { $set: neworder });
-
                     let check2 = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { $and: [{ "POID": neworder['POID'] }, { $or: [{ "DEP": "MANA" }, { "DEP": "STAFF" }] }] });
                     if (check2.length === 0) {
                         neworder['time'] = check.length + 1;
                         neworder['date'] = day;
                         neworder['checklist'] = checklist;
                         var ins2 = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
-                        query2 = `INSERT  INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES ('${input['PO']}','${input['wegiht']}','','${data["PLANT"]}','1')`
-                        let db2 = await mssqlR.qureyR(query2);
+                        await mssqlR.qureyRP(
+                            `INSERT INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES (@order, @weight, '', @plant, '1')`,
+                            { order: input['PO'], weight: input['wegiht'], plant: data["PLANT"] }
+                        );
                         console.log(">>>>>>>")
                         output = `The order have added to PLANT:${data["PLANT"]}`;
 
@@ -833,6 +827,7 @@ router.post('/RegisterPO', async (req, res) => {
 
 
         catch (err) {
+            console.error(err);
             output = '';
         }
     }
@@ -1035,7 +1030,7 @@ router.post('/RegisterPOAP', async (req, res) => {
                 // console.log(Object.keys(data["MATDATA"]["SPEC"]))
                 let INSlist = Object.keys(data["MATDATA"]["SPEC"]);
                 let checklist = [];
-                for (i = 0; i < INSlist.length; i++) {
+                for (let i = 0; i < INSlist.length; i++) {
 
                     if (INSlist[i] === 'COLOR') {
                         checklist.push(INSlist[i]);
@@ -1109,13 +1104,15 @@ router.post('/RegisterPOAP', async (req, res) => {
                     neworder['checklist'] = checklist;
                     var ins = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
                     output = `The order have added to PLANT:${data["PLANT"]}`;
-                    query = `INSERT  INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES ('${input['PO']}','${input['COMMENT']}','NEW','${input['ID']}','${data["PLANT"]}','${data["ProductName"]}')`
-                    let db = await mssqlR.qureyR(query);
-                    query2 = `INSERT  INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES ('${input['PO']}','${input['wegiht']}','','${data["PLANT"]}','1')`
-                    let db2 = await mssqlR.qureyR(query2);
+                    await mssqlR.qureyRP(
+                        `INSERT INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES (@poid, @comment, 'NEW', @userid, @plant, @productname)`,
+                        { poid: input['PO'], comment: input['COMMENT'], userid: input['ID'], plant: data["PLANT"], productname: data["ProductName"] }
+                    );
+                    await mssqlR.qureyRP(
+                        `INSERT INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES (@order, @weight, '', @plant, '1')`,
+                        { order: input['PO'], weight: input['wegiht'], plant: data["PLANT"] }
+                    );
                 } else {
-                    // let upd = await mongodb.update(`${neworder['PLANT']}dbMAIN`,'MAIN',{ "POID":neworder['POID'] }, { $set: neworder });
-
                     let check2 = await mongodb.find(`${neworder['PLANT']}dbMAIN`, 'MAIN', { $and: [{ "POID": neworder['POID'] }, { $or: [{ "DEP": "MANA" }, { "DEP": "STAFF" }] }] });
                     if (check2.length === 0) {
                         neworder['time'] = check.length + 1;
@@ -1124,15 +1121,20 @@ router.post('/RegisterPOAP', async (req, res) => {
                         var ins2 = await mongodb.insertMany(`${neworder['PLANT']}dbMAIN`, 'MAIN', [neworder]);
                         console.log(">>>>>>>")
                         output = `The order have added to PLANT:${data["PLANT"]}`;
-                        // input['COMMENT']
-                        query = `INSERT  INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES ('${input['PO']}','${input['COMMENT']}','NEW','${input['ID']}','${data["PLANT"]}','${data["ProductName"]}')`
-                        let db = await mssqlR.qureyR(query);
-                        query2 = `INSERT  INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES ('${input['PO']}','${input['wegiht']}','','${data["PLANT"]}','1')`
-                        let db2 = await mssqlR.qureyR(query2);
+                        await mssqlR.qureyRP(
+                            `INSERT INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES (@poid, @comment, 'NEW', @userid, @plant, @productname)`,
+                            { poid: input['PO'], comment: input['COMMENT'], userid: input['ID'], plant: data["PLANT"], productname: data["ProductName"] }
+                        );
+                        await mssqlR.qureyRP(
+                            `INSERT INTO [SOI8LOG].[dbo].[confirmweightrecore] ([order],[weight],[tank],[plant],[seq]) VALUES (@order, @weight, '', @plant, '1')`,
+                            { order: input['PO'], weight: input['wegiht'], plant: data["PLANT"] }
+                        );
 
                     } else {
-                        query = `INSERT  INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES ('${input['PO']}','${input['COMMENT']}','HAVE','${input['ID']}','${data["PLANT"]}','${data["ProductName"]}')`
-                        let db = await mssqlR.qureyR(query);
+                        await mssqlR.qureyRP(
+                            `INSERT INTO [SOI8LOG].[dbo].[qcbypass_weight] ([POID],[COMMENT],[STATUS],[USERID],[PLANT],[ProductName]) VALUES (@poid, @comment, 'HAVE', @userid, @plant, @productname)`,
+                            { poid: input['PO'], comment: input['COMMENT'], userid: input['ID'], plant: data["PLANT"], productname: data["ProductName"] }
+                        );
                         output = `The order have already had in DB`;
                     }
 
@@ -1144,6 +1146,7 @@ router.post('/RegisterPOAP', async (req, res) => {
 
         }
         catch (err) {
+            console.error(err);
             output = '';
         }
 

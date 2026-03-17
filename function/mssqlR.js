@@ -1,50 +1,53 @@
 const sql = require('mssql');
+
 const config = {
   user: "sa",
   password: "Automatic",
   database: "",
   server: '172.23.10.39',
   pool: {
-    // max: 10,
-    // min: 0,
+    max: 10,
+    min: 2,
     idleTimeoutMillis: 30000
   },
   options: {
-    encrypt: false, // for azure
-    trustServerCertificate: true, // change to true for local dev / self-signed certs
+    encrypt: false,
+    trustServerCertificate: true,
   }
+};
+
+// Singleton pool — connect once, reuse across all queries
+let pool = null;
+
+async function getPool() {
+  if (!pool || !pool.connected) {
+    pool = await sql.connect(config);
+  }
+  return pool;
 }
 
 exports.qureyR = async (input) => {
   try {
-    await sql.connect(config)
-    let out;
-    const result = await sql.query(input).then((v) => {
-      out = v;
-      return v;
-    }).then(() => sql.close())
-    return out;
+    const p = await getPool();
+    const result = await p.request().query(input);
+    return result;
   } catch (err) {
-    return err;
+    console.error('[mssqlR] qureyR error:', err);
+    throw err;
   }
 };
 
 exports.qureyRP = async (queryString, params = {}) => {
   try {
-    await sql.connect(config);
-    const request = new sql.Request();
+    const p = await getPool();
+    const request = p.request();
     for (const [key, value] of Object.entries(params)) {
       request.input(key, value);
     }
     const result = await request.query(queryString);
-    await sql.close();
     return result;
   } catch (err) {
-    return err;
+    console.error('[mssqlR] qureyRP error:', err);
+    throw err;
   }
 };
-
-
-// .then((v) => console.log(v))
-//     .then(() => sql.close())
-

@@ -1,8 +1,6 @@
-const e = require("express");
 const express = require("express");
 const router = express.Router();
 let mongodb = require('../../function/mongodb');
-var request = require('request');
 let mssql = require('./../../function/mssql');
 
 let PREMIXserver = 'PREMIX_MASTER';
@@ -42,7 +40,7 @@ router.post('/gethistoryplant', async (req, res) => {
         let find = await mongodb.find(`${plant}_MASTER`, 'specification', {});
         if (find.length > 0) {
             // output = { "return": 'OK' }
-            for (i = 0; i < find.length; i++) {
+            for (let i = 0; i < find.length; i++) {
                 output.push({ "MATNO": find[i]['MATNO'], "ProductName": find[i]['ProductName'], })
             }
 
@@ -82,7 +80,7 @@ router.post('/gethistory', async (req, res) => {
             // output = find;
 
             output['checklist'] = find[0]['checklist'] ?? [];
-            for (i = 0; i < find.length; i++) {
+            for (let i = 0; i < find.length; i++) {
 
                 var databuff = {
                     "POID": find[i]['POID'],
@@ -93,7 +91,7 @@ router.post('/gethistory', async (req, res) => {
                     "DEP": find[i]['DEP'],
                 }
 
-                for (j = 0; j < output['checklist'].length; j++) {
+                for (let j = 0; j < output['checklist'].length; j++) {
                     databuff[`P${j}_T1`] = find[i][`${output['checklist'][j]}`]['T1'] ?? ``;
                     databuff[`P${j}_T2`] = find[i][`${output['checklist'][j]}`]['T2'] ?? ``;
                     databuff[`P${j}_T3`] = find[i][`${output['checklist'][j]}`]['T3'] ?? ``;
@@ -158,13 +156,17 @@ router.post('/getweightlist', async (req, res) => {
         } else if (LIQUID.length > 0) {
             let GETPO = await mongodb.findnolim(LIQUIDdbMAIN, dbinMAIN, { "MATNO": MATCP }, { "PO": 1 });
 
-            let polist = [];
-            for (let i = 0; i < GETPO.length; i++) {
-                polist.push(`'${GETPO[i]['PO']}'`)
-            }
+            const poParamObj = {};
+            GETPO.forEach((item, i) => { poParamObj[`po${i}`] = item['PO']; });
+            const poPlaceholders = GETPO.map((_, i) => `@po${i}`).join(',');
 
-            let queryS = `SELECT * FROM [ScadaReport].[dbo].[LQprocessinfo] WHERE NumOrder in (${polist})  order by NumOrder  desc, RecordTimeStart  desc`
-            let db = await mssql.qurey(queryS);
+            let db = { recordsets: [[]] };
+            if (GETPO.length > 0) {
+                db = await mssql.qureyP(
+                    `SELECT * FROM [ScadaReport].[dbo].[LQprocessinfo] WHERE NumOrder IN (${poPlaceholders}) ORDER BY NumOrder DESC, RecordTimeStart DESC`,
+                    poParamObj
+                );
+            }
             // console.log(db['recordsets'][0]);
             let datadb = db['recordsets'][0];
             let StrChemicalList = [];
@@ -243,26 +245,33 @@ router.post('/GetWeighBYTANK', async (req, res) => {
     try {
         if (input['TANK'] != undefined && input['STARTyear'] != undefined && input['STARTmonth'] != undefined && input['STARTday'] != undefined && input['ENDyear'] != undefined && input['ENDmonth'] != undefined && input['ENDday'] != undefined) {
 
-            let queryS = `SELECT *
-        FROM [ScadaReport].[dbo].[LQprocessinfo] where StrChemical = 'END' and StrLotNum = '${input['TANK']}' and ( RecordTimeStart between '${input['STARTyear']}-${input['STARTmonth']}-${input['STARTday']} 00:00:00' and '${input['ENDyear']}-${input['ENDmonth']}-${input['ENDday']} 23:59:59' ) order by RecordTimeStart desc`
-            let db = await mssql.qurey(queryS);
-
-
-
+            const db = await mssql.qureyP(
+                `SELECT * FROM [ScadaReport].[dbo].[LQprocessinfo] WHERE StrChemical = 'END' AND StrLotNum = @tank AND RecordTimeStart BETWEEN @startdate AND @enddate ORDER BY RecordTimeStart DESC`,
+                {
+                    tank: input['TANK'],
+                    startdate: `${input['STARTyear']}-${input['STARTmonth']}-${input['STARTday']} 00:00:00`,
+                    enddate: `${input['ENDyear']}-${input['ENDmonth']}-${input['ENDday']} 23:59:59`
+                }
+            );
 
             let datadb = db['recordsets'][0];
 
             let orderlist = [];
             for (let i = 0; i < datadb.length; i++) {
-                orderlist.push(
-                    datadb[i]['NumOrder']
-                )
+                orderlist.push(datadb[i]['NumOrder']);
             }
 
-            let queryout = `SELECT  *
-        FROM [ScadaReport].[dbo].[LQprocessinfo]  WHERE NumOrder in (${orderlist})  order by NumOrder  desc , RecordTimeStart desc`
-            let queryouts = await mssql.qurey(queryout);
-            let queryoutss = queryouts['recordsets'][0];
+            let queryoutss = [];
+            if (orderlist.length > 0) {
+                const ordParamObj = {};
+                orderlist.forEach((val, i) => { ordParamObj[`ord${i}`] = val; });
+                const ordPlaceholders = orderlist.map((_, i) => `@ord${i}`).join(',');
+                const queryouts = await mssql.qureyP(
+                    `SELECT * FROM [ScadaReport].[dbo].[LQprocessinfo] WHERE NumOrder IN (${ordPlaceholders}) ORDER BY NumOrder DESC, RecordTimeStart DESC`,
+                    ordParamObj
+                );
+                queryoutss = queryouts['recordsets'][0];
+            }
 
             // output = queryoutss;
 
@@ -327,11 +336,8 @@ router.post('/GetWeighBYTANK', async (req, res) => {
         }
 
     } catch (err) {
-        output = {
-            "list": [],
-            "DATA": [],
-            // "listorder":orderlist
-        };
+        console.error(err);
+        output = { "list": [], "DATA": [] };
     }
 
 
@@ -342,7 +348,7 @@ router.post('/GetWeighBYTANK', async (req, res) => {
 
 
 
-                            module.exports = router;
+module.exports = router;
 
 
 // SELECT *

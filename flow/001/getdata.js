@@ -1,4 +1,3 @@
-const e = require("express");
 const express = require("express");
 const router = express.Router();
 let mongodb = require('../../function/mongodb');
@@ -26,60 +25,22 @@ let day = d;
 
     try {
 
-        let PREMIX = await mongodb.find(PREMIXdbMAIN, dbinMAIN, { $and: [{ "DEP": "STAFF" }] }); //{ "SumStatus": "IP" }, { "DEP": "STAFF" }
-        if (PREMIX.length > 0) {
-            for (i = 0; i < PREMIX.length; i++) {
-                output.push(PREMIX[i]);
-            }
-        }
-        let COILCOATING = await mongodb.find(COILCOATINGdbMAIN, dbinMAIN, { $and: [{ "DEP": "STAFF" }] });
-        if (COILCOATING.length > 0) {
-            for (i = 0; i < COILCOATING.length; i++) {
-                output.push(COILCOATING[i]);
-            }
-        }
-        let HYDROPHILIC = await mongodb.find(HYDROPHILICdbMAIN, dbinMAIN, { $and: [{ "DEP": "STAFF" }] });
-        if (HYDROPHILIC.length > 0) {
-            for (i = 0; i < HYDROPHILIC.length; i++) {
-                output.push(HYDROPHILIC[i]);
-            }
-        }
-        let PLX = await mongodb.find(PLXdbMAIN, dbinMAIN, { $and: [{ "DEP": "STAFF" }] });
-        if (PLX.length > 0) {
-            for (i = 0; i < PLX.length; i++) {
-                output.push(PLX[i]);
-            }
-        }
-        let TRITRATING = await mongodb.find(TRITRATINGdbMAIN, dbinMAIN, { $and: [{ "DEP": "STAFF" }] });
-        if (TRITRATING.length > 0) {
-            for (i = 0; i < TRITRATING.length; i++) {
-                output.push(TRITRATING[i]);
-            }
-        }
+        const [PREMIX, COILCOATING, HYDROPHILIC, PLX, TRITRATING, POWDER, LIQUID, NOXRUST] = await Promise.all([
+            mongodb.find(PREMIXdbMAIN, dbinMAIN, { "DEP": "STAFF" }),
+            mongodb.find(COILCOATINGdbMAIN, dbinMAIN, { "DEP": "STAFF" }),
+            mongodb.find(HYDROPHILICdbMAIN, dbinMAIN, { "DEP": "STAFF" }),
+            mongodb.find(PLXdbMAIN, dbinMAIN, { "DEP": "STAFF" }),
+            mongodb.find(TRITRATINGdbMAIN, dbinMAIN, { "DEP": "STAFF" }),
+            mongodb.find(POWDERdbMAIN, dbinMAIN, { "DEP": "STAFF" }),
+            mongodb.find(LIQUIDdbMAIN, dbinMAIN, { "DEP": "STAFF" }),
+            mongodb.find(NOXRUSTdbMAIN, dbinMAIN, { "DEP": "STAFF" }),
+        ]);
+        output.push(...PREMIX, ...COILCOATING, ...HYDROPHILIC, ...PLX, ...TRITRATING, ...POWDER, ...LIQUID, ...NOXRUST);
 
-        let POWDER = await mongodb.find(POWDERdbMAIN, dbinMAIN, { $and: [{ "DEP": "STAFF" }] });
-        if (POWDER.length > 0) {
-            for (i = 0; i < POWDER.length; i++) {
-                output.push(POWDER[i]);
-            }
-        }
-        let LIQUID = await mongodb.find(LIQUIDdbMAIN, dbinMAIN, { $and: [{ "DEP": "STAFF" }] });
-        if (LIQUID.length > 0) {
-            for (i = 0; i < LIQUID.length; i++) {
-                output.push(LIQUID[i]);
-            }
-        }
-        let NOXRUST = await mongodb.find(NOXRUSTdbMAIN, dbinMAIN, { $and: [{ "DEP": "STAFF" }] });
-        if (NOXRUST.length > 0) {
-            for (i = 0; i < NOXRUST.length; i++) {
-                output.push(NOXRUST[i]);
-            }
-        }
-
-        for (i = 0; i < output.length; i++) {
+        for (let i = 0; i <output.length; i++) {
             // console.log(output[i]['checklist']);
             let passcount = 0;
-            for (j = 0; j < output[i]['checklist'].length; j++) {
+            for (let j = 0; j < output[i]['checklist'].length; j++) {
 
                 if (output[i][output[i]['checklist'][j]]['AllSt'] === 'PASS') {
                     passcount++;
@@ -123,55 +84,17 @@ let day = d;
 
     try {
 
-        let PREMIX = await mongodb.find(PREMIXdbMAIN, dbinMAIN, { $and: [{ "DEP": "MANA" }] }); //{ "SumStatus": "IP" }, { "DEP": "STAFF" }
-        if (PREMIX.length > 0) {
-            for (i = 0; i < PREMIX.length; i++) {
-                output.push(PREMIX[i]);
-            }
-        }
-        let COILCOATING = await mongodb.find(COILCOATINGdbMAIN, dbinMAIN, { $and: [{ "DEP": "MANA" }] });
-        if (COILCOATING.length > 0) {
-            for (i = 0; i < COILCOATING.length; i++) {
-                output.push(COILCOATING[i]);
-            }
-        }
-        let HYDROPHILIC = await mongodb.find(HYDROPHILICdbMAIN, dbinMAIN, { $and: [{ "DEP": "MANA" }] });
-        if (HYDROPHILIC.length > 0) {
-            for (i = 0; i < HYDROPHILIC.length; i++) {
-                output.push(HYDROPHILIC[i]);
-            }
-        }
-        let PLX = await mongodb.find(PLXdbMAIN, dbinMAIN, { $and: [{ "DEP": "MANA" }] });
-        if (PLX.length > 0) {
-            for (i = 0; i < PLX.length; i++) {
-                output.push(PLX[i]);
-            }
-        }
-        let TRITRATING = await mongodb.find(TRITRATINGdbMAIN, dbinMAIN, { $and: [{ "DEP": "MANA" }] });
-        if (TRITRATING.length > 0) {
-            for (i = 0; i < TRITRATING.length; i++) {
-                output.push(TRITRATING[i]);
-            }
-        }
-
-        let POWDER = await mongodb.find(POWDERdbMAIN, dbinMAIN, { $and: [{ "DEP": "MANA" }] });
-        if (POWDER.length > 0) {
-            for (i = 0; i < POWDER.length; i++) {
-                output.push(POWDER[i]);
-            }
-        }
-        let LIQUID = await mongodb.find(LIQUIDdbMAIN, dbinMAIN, { $and: [{ "DEP": "MANA" }] });
-        if (LIQUID.length > 0) {
-            for (i = 0; i < LIQUID.length; i++) {
-                output.push(LIQUID[i]);
-            }
-        }
-        let NOXRUST = await mongodb.find(NOXRUSTdbMAIN, dbinMAIN, { $and: [{ "DEP": "MANA" }] });
-        if (NOXRUST.length > 0) {
-            for (i = 0; i < NOXRUST.length; i++) {
-                output.push(NOXRUST[i]);
-            }
-        }
+        const [PREMIX, COILCOATING, HYDROPHILIC, PLX, TRITRATING, POWDER, LIQUID, NOXRUST] = await Promise.all([
+            mongodb.find(PREMIXdbMAIN, dbinMAIN, { "DEP": "MANA" }),
+            mongodb.find(COILCOATINGdbMAIN, dbinMAIN, { "DEP": "MANA" }),
+            mongodb.find(HYDROPHILICdbMAIN, dbinMAIN, { "DEP": "MANA" }),
+            mongodb.find(PLXdbMAIN, dbinMAIN, { "DEP": "MANA" }),
+            mongodb.find(TRITRATINGdbMAIN, dbinMAIN, { "DEP": "MANA" }),
+            mongodb.find(POWDERdbMAIN, dbinMAIN, { "DEP": "MANA" }),
+            mongodb.find(LIQUIDdbMAIN, dbinMAIN, { "DEP": "MANA" }),
+            mongodb.find(NOXRUSTdbMAIN, dbinMAIN, { "DEP": "MANA" }),
+        ]);
+        output.push(...PREMIX, ...COILCOATING, ...HYDROPHILIC, ...PLX, ...TRITRATING, ...POWDER, ...LIQUID, ...NOXRUST);
 
     }
     catch (err) {
@@ -198,55 +121,17 @@ let day = d;
 
 
 
-        let PREMIX = await mongodb.find(PREMIXdbMAIN, dbinMAIN, { $and: [{ "POID": poid }, { "DEP": "SCADA" }] }); //{ "SumStatus": "IP" }, { "DEP": "STAFF" }
-        if (PREMIX.length > 0) {
-            for (i = 0; i < PREMIX.length; i++) {
-                output.push(PREMIX[i]);
-            }
-        }
-        let COILCOATING = await mongodb.find(COILCOATINGdbMAIN, dbinMAIN, { $and: [{ "POID": poid }, { "DEP": "SCADA" }] });
-        if (COILCOATING.length > 0) {
-            for (i = 0; i < COILCOATING.length; i++) {
-                output.push(COILCOATING[i]);
-            }
-        }
-        let HYDROPHILIC = await mongodb.find(HYDROPHILICdbMAIN, dbinMAIN, { $and: [{ "POID": poid }, { "DEP": "SCADA" }] });
-        if (HYDROPHILIC.length > 0) {
-            for (i = 0; i < HYDROPHILIC.length; i++) {
-                output.push(HYDROPHILIC[i]);
-            }
-        }
-        let PLX = await mongodb.find(PLXdbMAIN, dbinMAIN, { $and: [{ "POID": poid }, { "DEP": "SCADA" }] });
-        if (PLX.length > 0) {
-            for (i = 0; i < PLX.length; i++) {
-                output.push(PLX[i]);
-            }
-        }
-        let TRITRATING = await mongodb.find(TRITRATINGdbMAIN, dbinMAIN, { $and: [{ "POID": poid }, { "DEP": "SCADA" }] });
-        if (TRITRATING.length > 0) {
-            for (i = 0; i < TRITRATING.length; i++) {
-                output.push(TRITRATING[i]);
-            }
-        }
-
-        let POWDER = await mongodb.find(POWDERdbMAIN, dbinMAIN, { $and: [{ "POID": poid }, { "DEP": "SCADA" }] });
-        if (POWDER.length > 0) {
-            for (i = 0; i < POWDER.length; i++) {
-                output.push(POWDER[i]);
-            }
-        }
-        let LIQUID = await mongodb.find(LIQUIDdbMAIN, dbinMAIN, { $and: [{ "POID": poid }, { "DEP": "SCADA" }] });
-        if (LIQUID.length > 0) {
-            for (i = 0; i < LIQUID.length; i++) {
-                output.push(LIQUID[i]);
-            }
-        }
-        let NOXRUST = await mongodb.find(NOXRUSTdbMAIN, dbinMAIN, { $and: [{ "POID": poid }, { "DEP": "SCADA" }] });
-        if (NOXRUST.length > 0) {
-            for (i = 0; i < NOXRUST.length; i++) {
-                output.push(NOXRUST[i]);
-            }
-        }
+        const [PREMIX, COILCOATING, HYDROPHILIC, PLX, TRITRATING, POWDER, LIQUID, NOXRUST] = await Promise.all([
+            mongodb.find(PREMIXdbMAIN, dbinMAIN, { "POID": poid, "DEP": "SCADA" }),
+            mongodb.find(COILCOATINGdbMAIN, dbinMAIN, { "POID": poid, "DEP": "SCADA" }),
+            mongodb.find(HYDROPHILICdbMAIN, dbinMAIN, { "POID": poid, "DEP": "SCADA" }),
+            mongodb.find(PLXdbMAIN, dbinMAIN, { "POID": poid, "DEP": "SCADA" }),
+            mongodb.find(TRITRATINGdbMAIN, dbinMAIN, { "POID": poid, "DEP": "SCADA" }),
+            mongodb.find(POWDERdbMAIN, dbinMAIN, { "POID": poid, "DEP": "SCADA" }),
+            mongodb.find(LIQUIDdbMAIN, dbinMAIN, { "POID": poid, "DEP": "SCADA" }),
+            mongodb.find(NOXRUSTdbMAIN, dbinMAIN, { "POID": poid, "DEP": "SCADA" }),
+        ]);
+        output.push(...PREMIX, ...COILCOATING, ...HYDROPHILIC, ...PLX, ...TRITRATING, ...POWDER, ...LIQUID, ...NOXRUST);
 
     }
     catch (err) {

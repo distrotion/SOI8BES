@@ -1,4 +1,3 @@
-const e = require("express");
 const express = require("express");
 const router = express.Router();
 let mongodb = require('../../function/mongodb');
@@ -32,6 +31,7 @@ let day = d;
 
     }
     catch (err) {
+        console.error(err);
         output = { "return": 'NOK' }
     }
 
@@ -57,13 +57,14 @@ let day = d;
 
         let upd = await mongodb.update(`${plant}dbMAIN`, 'MAIN', { $and: [{ "POID": poid }, { $or: [{ "DEP": "MANA" }, { "DEP": "STAFF" }] }] }, { $set: { "DEP": "STAFF", "RETURNTOSTAFFdate": RETURNTOSTAFFdate, "STAFF": ID } });
 
-        let find = await mongodb.find(`${plant}dbMAIN`, 'MAIN', { $and: [{ "POID": poid }, { "DEP": "MANA" }] });
+        let find = await mongodb.find(`${plant}dbMAIN`, 'MAIN', { $and: [{ "POID": poid }, { "DEP": "STAFF" }] });
         if (find.length > 0) {
             output = { "return": 'OK' }
         }
 
     }
     catch (err) {
+        console.error(err);
         output = { "return": 'NOK' }
     }
 
@@ -110,6 +111,7 @@ router.post('/passtoscada', async (req, res) => {
 
     }
     catch (err) {
+        console.error(err);
         output = { "return": 'NOK' }
     }
 
@@ -156,6 +158,7 @@ router.post('/passtoscadare', async (req, res) => {
 
     }
     catch (err) {
+        console.error(err);
         output = { "return": 'NOK' }
     }
 
@@ -165,8 +168,7 @@ router.post('/passtoscadare', async (req, res) => {
 
 
 router.post('/completetitem', async (req, res) => {
-    let d = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });;
-    let day = d;
+    let input = req.body;
     let output = { "return": 'NOK' }
 
     try {
@@ -174,9 +176,11 @@ router.post('/completetitem', async (req, res) => {
         let poid = `${input['poid']}`
         let plant = input['plant']
         let upd = await mongodb.update(`${plant}dbMAIN`, 'MAIN', { "POID": poid }, { $set: { "DEP": "COMPLETE" } });
+        output = { "return": 'OK' }
 
     }
     catch (err) {
+        console.error(err);
         output = { "return": 'NOK' }
     }
     res.json(output);

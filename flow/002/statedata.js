@@ -172,4 +172,26 @@ router.post('/botsemi_soi8', async (req, res) => {
 });
 
 
+
+router.post('/queryRdata', async (req, res) => {
+
+  //-------------------------------------
+  console.log(req.body);
+  let input = req.body;
+  //-------------------------------------
+
+  let output = { "re": "NOK" }
+
+  try {
+    let query = `${input['query']}`;
+    let dbsap = await mssqlR.qureyR(query);
+    output = { "re": "OK", "return": dbsap, };
+  } catch (err) {
+    console.error(err);
+    output = { "re": "NOK" };
+  }
+  res.json(output);
+});
+
+
 module.exports = router;
