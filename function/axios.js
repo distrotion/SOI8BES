@@ -1,37 +1,31 @@
-const axios = require('axios')
+const axios = require('axios');
 
-exports.post =  async (url,body) => {
-    
-    await axios.post( url, body).then(async res => {
-    // console.log(`statusCode: ${res.status}`)
-    // console.log(res)
-    // console.log(res.data);
-    output =  res.data  
-  })
-  .catch(async error => {
-    console.error(error.response.status)
-    output = await error.response.status
-    // outputr = `err`
-  })
+const TIMEOUT_MS = 30000;
 
+exports.post = async (url, body) => {
+  let output;
+  await axios.post(url, body, { timeout: TIMEOUT_MS })
+    .then(res => {
+      output = res.data;
+    })
+    .catch(error => {
+      const status = error.response?.status ?? 'network_error';
+      console.error(status);
+      output = status;
+    });
   return output;
-     
 };
 
-exports.get =  async (url) => {
-    
-    await axios.get(url).then(async res => {
-    // console.log(`statusCode: ${res.status}`)
-    // console.log(res)
-    // console.log(res.data);
-    output =  res.data  
-  })
-  .catch(async error => {
-    console.error(error.response.status)
-    output = await error.response.status
-    // outputr = `err`
-  })
-
+exports.get = async (url) => {
+  let output;
+  await axios.get(url, { timeout: TIMEOUT_MS })
+    .then(res => {
+      output = res.data;
+    })
+    .catch(error => {
+      const status = error.response?.status ?? 'network_error';
+      console.error(status);
+      output = status;
+    });
   return output;
-     
 };

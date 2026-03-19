@@ -182,7 +182,8 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'COILCOATING') {
 
-                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[CoilProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
+                query = `SELECT *  FROM [ScadaReport].[dbo].[CoilProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
+                let db = await mssql.qurey(query);
 
 
 
@@ -241,7 +242,8 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'HYDROPHILIC') {
 
-                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[HydroProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
+                query = `SELECT *  FROM [ScadaReport].[dbo].[HydroProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
+                let db = await mssql.qurey(query);
 
                 output = db;
                 if (db['recordsets'][0].length == 0) {
@@ -298,7 +300,8 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'PLX') {
 
-                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[PLXprocessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
+                query = `SELECT *  FROM [ScadaReport].[dbo].[PLXprocessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
+                let db = await mssql.qurey(query);
 
                 output = db;
                 if (db['recordsets'][0].length == 0) {
@@ -355,7 +358,8 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'PREMIX') {
 
-                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[PMIXProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
+                query = `SELECT *  FROM [ScadaReport].[dbo].[PMIXProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
+                let db = await mssql.qurey(query);
 
 
 
@@ -417,7 +421,8 @@ router.post('/CHECKPO', async (req, res) => {
 
             } else if (data["PLANT"] == 'POWDER') {
 
-                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[PMProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
+                query = `SELECT *  FROM [ScadaReport].[dbo].[PMProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
+                let db = await mssql.qurey(query);
 
                 output = db;
 
@@ -475,7 +480,8 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'LIQUID') {
 
-                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[LQprocessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
+                query = `SELECT *  FROM [ScadaReport].[dbo].[LQprocessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
+                let db = await mssql.qurey(query);
 
                 output = db;
                 if (db['recordsets'][0].length == 0) {
@@ -532,7 +538,8 @@ router.post('/CHECKPO', async (req, res) => {
                 }
             } else if (data["PLANT"] == 'NOXRUST') {
 
-                let db = await mssql.qureyP(`SELECT * FROM [ScadaReport].[dbo].[NoxProcessinfo] WHERE NumOrder = @po ORDER BY RecordTimeStart ASC`, { po: PO });
+                query = `SELECT *  FROM [ScadaReport].[dbo].[NoxProcessinfo] where NumOrder= '${PO}' order by RecordTimeStart asc`
+                let db = await mssql.qurey(query);
 
                 output = db;
                 if (db['recordsets'][0].length == 0) {

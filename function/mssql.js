@@ -5,10 +5,13 @@ const config = {
   password: "Parker789",
   database: "",
   server: '172.23.10.59',
+  connectionTimeout: 15000,
+  requestTimeout: 30000,
   pool: {
     max: 10,
     min: 2,
-    idleTimeoutMillis: 30000
+    idleTimeoutMillis: 30000,
+    acquireTimeoutMillis: 30000,
   },
   options: {
     encrypt: false,
@@ -16,14 +19,24 @@ const config = {
   }
 };
 
-// Singleton pool — connect once, reuse across all queries
 let pool = null;
+let poolPromise = null;
 
 async function getPool() {
-  if (!pool || !pool.connected) {
-    pool = await sql.connect(config);
+  if (pool && pool.connected) return pool;
+  if (!poolPromise) {
+    poolPromise = sql.connect(config)
+      .then(p => {
+        pool = p;
+        poolPromise = null;
+        return pool;
+      })
+      .catch(err => {
+        poolPromise = null;
+        throw err;
+      });
   }
-  return pool;
+  return poolPromise;
 }
 
 exports.qurey = async (input) => {
