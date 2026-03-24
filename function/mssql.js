@@ -25,7 +25,7 @@ let poolPromise = null;
 async function getPool() {
   if (pool && pool.connected) return pool;
   if (!poolPromise) {
-    poolPromise = sql.connect(config)
+    poolPromise = new sql.ConnectionPool(config).connect()
       .then(p => {
         pool = p;
         poolPromise = null;
